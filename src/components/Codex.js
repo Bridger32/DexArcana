@@ -1,20 +1,22 @@
-const Codex = ({ user, grokGenerate, onRestrictedClick }) => {
-  const [codexes, setCodexes] = React.useState([]);
-  const [selectedCodex, setSelectedCodex] = React.useState(null);
-  const [section, setSection] = React.useState('Lore');
-  const [content, setContent] = React.useState('');
-  const [bookOpen, setBookOpen] = React.useState(false);
-  const canvasRef = React.useRef(null);
-  const [zoom, setZoom] = React.useState(1);
-  const [canvasActive, setCanvasActive] = React.useState(false);
+import React, { useState, useEffect, useRef } from 'react';
 
-  React.useEffect(() => {
+const Codex = ({ user, grokGenerate, onRestrictedClick }) => {
+  const [codexes, setCodexes] = useState([]);
+  const [selectedCodex, setSelectedCodex] = useState(null);
+  const [section, setSection] = useState('Lore');
+  const [content, setContent] = useState('');
+  const [bookOpen, setBookOpen] = useState(false);
+  const canvasRef = useRef(null);
+  const [zoom, setZoom] = useState(1);
+  const [canvasActive, setCanvasActive] = useState(false);
+
+  useEffect(() => {
     Backend.load(user.id, 'codexes', []).then(data => {
       setCodexes(Array.isArray(data) ? data : []);
     });
   }, [user.id]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user.tier !== 'scribe') {
       Backend.save(user.id, 'codexes', codexes);
     }
@@ -60,40 +62,45 @@ const Codex = ({ user, grokGenerate, onRestrictedClick }) => {
     }
   };
 
-  return React.createElement(
-    'div',
-    { className: 'codex' },
-    React.createElement('h2', null, 'Codex'),
-    !selectedCodex && [
-      React.createElement(
-        'div',
-        { className: 'codex-form' },
-        React.createElement('input', { value: content, onChange: e => setContent(e.target.value), placeholder: 'New Codex Name' }),
-        React.createElement('button', { onClick: createCodex }, 'Create Codex')
-      ),
-      React.createElement(
-        'div',
-        { className: 'codex-list' },
-        codexes.map(c => React.createElement(
-          'div',
-          { key: c.id, onClick: () => { setSelectedCodex(c); setContent(c.sections[section] || ''); setBookOpen(true); setCanvasActive(true); }, className: 'codex-cover animate-hover' },
-          React.createElement('h3', null, c.name)
-        ))
-      )
-    ],
-    selectedCodex && React.createElement(
-      'div',
-      { className: `codex-book ${bookOpen ? 'open' : ''}` },
-      React.createElement(
-        'div',
-        { className: 'book-cover', onClick: () => { setBookOpen(!bookOpen); if (!bookOpen) setCanvasActive(true); else setCanvasActive(false); } },
-        React.createElement('h3', null, selectedCodex.name)
-      ),
-      bookOpen && React.createElement(
-        'div',
-        { className: 'book-content' },
-        React.createElement('button', { onClick: () => deleteCodex(selectedCodex.id) }, 'Delete Codex')
-      )
-    )
+  return (
+    <div className="codex">
+      <h2>Codex</h2>
+      {!selectedCodex && (
+        <>
+          <div className="codex-form">
+            <input value={content} onChange={e => setContent(e.target.value)} placeholder="New Codex Name" />
+            <button onClick={createCodex}>Create Codex</button>
+          </div>
+          <div className="codex-list">
+            {codexes.map(c => (
+              <div
+                key={c.id}
+                onClick={() => { setSelectedCodex(c); setContent(c.sections[section] || ''); setBookOpen(true); setCanvasActive(true); }}
+                className="codex-cover animate-hover"
+              >
+                <h3>{c.name}</h3>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      {selectedCodex && (
+        <div className={`codex-book ${bookOpen ? 'open' : ''}`}>
+          <div
+            className="book-cover"
+            onClick={() => { setBookOpen(!bookOpen); if (!bookOpen) setCanvasActive(true); else setCanvasActive(false); }}
+          >
+            <h3>{selectedCodex.name}</h3>
+          </div>
+          {bookOpen && (
+            <div className="book-content">
+              <button onClick={() => deleteCodex(selectedCodex.id)}>Delete Codex</button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
+
+export default Codex;
