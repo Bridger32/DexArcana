@@ -1,0 +1,29 @@
+const CodexBook = ({ codex, setCodexes }) => {
+  const sections = ['Lore', 'Secrets', 'Buildings', 'Characters', 'Maps']; // Add more as needed
+  const [open, setOpen] = React.useState(false);
+
+  const updateSection = (section, content) => {
+    setCodexes(prev => prev.map(c => 
+      c.id === codex.id ? { ...c, sections: { ...c.sections, [section]: content } } : c
+    ));
+  };
+
+  return (
+    <div className={`codex-book ${open ? 'open' : ''}`}>
+      {!open ? (
+        <div className="cover" onClick={() => setOpen(true)}>{codex.name}</div>
+      ) : (
+        <div className="pages">
+          <h3>{codex.name}</h3>
+          {sections.map(s => (
+            <Section key={s} name={s} content={codex.sections[s] || ''} update={updateSection} />
+          ))}
+          <MapEditor codexId={codex.id} update={updateSection} />
+          <Timeline sections={codex.sections} />
+          <RelationshipMap sections={codex.sections} />
+          <ExportCodex codex={codex} />
+        </div>
+      )}
+    </div>
+  );
+};
